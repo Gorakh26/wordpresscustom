@@ -1,0 +1,318 @@
+<?php 
+
+register_nav_menus( array(
+		'header' =>'Top Nav Menu',
+		'footer' =>'Footer Nav Menu'
+	) );
+
+add_theme_support( 'custom-logo' ); 
+function themename_custom_logo_setup() {
+ $defaults = array(
+ 'height'      => 100,
+ 'width'       => 400,
+ 'flex-height' => true,
+ 'flex-width'  => true,
+ 'header-text' => array( 'site-title', 'site-description' ),
+ );
+ add_theme_support( 'custom-logo', $defaults );
+}
+add_action( 'after_setup_theme', 'themename_custom_logo_setup' );
+
+add_theme_support( 'post-thumbnails' );
+
+function wpb_set_post_views($postID) {
+  $count_key = 'wpb_post_views_count';
+  $count = get_post_meta($postID, $count_key, true);
+  if($count==''){
+      $count = 0;
+      delete_post_meta($postID, $count_key);
+      add_post_meta($postID, $count_key, '0');
+  }else{
+      $count++;
+      update_post_meta($postID, $count_key, $count);
+  }
+}
+//To keep the count accurate, lets get rid of prefetching
+remove_action( 'wp_head', 'adjacent_posts_rel_link_wp_head', 10, 0);
+
+function wpb_track_post_views ($post_id) {
+  if ( !is_single() ) return;
+  if ( empty ( $post_id) ) {
+      global $post;
+      $post_id = $post->ID;    
+  }
+  wpb_set_post_views($post_id);
+}
+add_action( 'wp_head', 'wpb_track_post_views');
+
+/*Custom slider  start*/
+
+add_action( 'init', 'register_cpt_org1' );
+function register_cpt_org1() {
+    $labels = array( 
+
+        'name' => _x( 'Slider', 'Slider' ),
+        'singular_name' => _x( 'Slider', 'Slider' ),
+        'add_new' => _x( 'Add New', 'Slider' ),
+        'add_new_item' => _x( 'Add New Slider', 'Slider' ),
+        'edit_item' => _x( 'Edit Slider', 'Slider' ),
+        'new_item' => _x( 'New Slider', 'Slider' ),
+        'view_item' => _x( 'View Slider', 'Slider' ),
+        'search_items' => _x( 'Search Slider', 'Slider' ),
+        'not_found' => _x( 'No Slider found', 'Slider' ),
+        'not_found_in_trash' => _x( 'No Slider found in Trash', 'Slider' ),
+        'parent_item_colon' => _x( 'Parent Slider:', 'Slider' ),
+        'menu_name' => _x( 'Slider', 'Slider' ),
+
+    );
+    $args = array( 
+        'labels' => $labels,
+        'hierarchical' => true,
+        'supports' => array( 'title','thumbnail','editor'),
+        'taxonomies' => array( 'post_tag', 'Slider Category' ),
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_nav_menus' => true,
+        'publicly_queryable' => true,
+        'exclude_from_search' => false,
+        'has_archive' => true,
+        'query_var' => true,
+        'can_export' => true,
+        'rewrite' => true,
+        'capability_type' => 'post'
+
+    );
+    register_post_type( 'Slider_post', $args );
+     flush_rewrite_rules();
+}
+/*Custom Post type start*/
+
+add_action( 'init', 'register_cpt_services' );
+function register_cpt_services() {
+ 
+    $labels = array( 
+        'name' => _x( 'Services', 'Services' ),
+        'singular_name' => _x( 'Services', 'Services' ),
+        'add_new' => _x( 'Add New', 'Services' ),
+        'add_new_item' => _x( 'Add New Services', 'Services' ),
+        'edit_item' => _x( 'Edit Services', 'Services' ),
+        'new_item' => _x( 'New Services', 'Services' ),
+        'view_item' => _x( 'View Services', 'Services' ),
+        'search_items' => _x( 'Search Services', 'Services' ),
+        'not_found' => _x( 'No Services found', 'Services' ),
+        'not_found_in_trash' => _x( 'No Services found in Trash', 'Services' ),
+        'parent_item_colon' => _x( 'Parent Services:', 'Services' ),
+        'menu_name' => _x( 'Services', 'Services' ),
+    );
+    $args = array( 
+        'labels' => $labels,
+        'hierarchical' => true,
+        'supports' => array( 'title','thumbnail'),
+        'taxonomies' => array( 'Services Category' ),
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_nav_menus' => true,
+        'publicly_queryable' => true,
+        'exclude_from_search' => false,
+        'has_archive' => true,
+        'query_var' => true,
+        'can_export' => true,
+        //'parent' => $parent_cat_ID,
+        'taxonomy' => 'services_cat',
+        'rewrite' => array( 'slug' => 'services' ),
+        'capability_type' => 'post'
+    );
+
+    register_post_type( 'services_post', $args );
+     flush_rewrite_rules();
+}
+
+add_action( 'init', 'create_organization_taxonomy', 0 );
+function create_organization_taxonomy() 
+{
+  // Add new taxonomy, make it hierarchical (like categories)
+  $labels = array(
+    'name' => _x( 'Category', 'taxonomy general name' ),
+    'singular_name' => _x( 'Category', 'taxonomy singular name' ),
+    'search_items' =>  __( 'Search Category' ),
+    'all_items' => __( 'All Category' ),
+    'parent_item' => __( 'Parent Category' ),
+    'parent_item_colon' => __( 'Parent Category:' ),
+    'edit_item' => __( 'Edit Category' ), 
+    'update_item' => __( 'Update Category' ),
+    'add_new_item' => __( 'Add New Category' ),
+    'new_item_name' => __( 'New Genre Category' ),
+    'menu_name' => __( 'Add Category' ),
+  );    
+  register_taxonomy('cat_post',array('services_post'), array(
+    'hierarchical' => true,
+    'labels' => $labels,
+    'show_ui' => true,
+    'query_var' => true,
+    'has_archive' => true,
+    'rewrite' => array( 'slug' => 'Category' ),
+  ));
+}
+
+
+// Start Gallery Post
+add_action( 'init', 'register_cpt_gallery' );
+function register_cpt_gallery() {
+
+    $labels = array( 
+        'name' => _x( 'Gallery', 'Gallery' ),
+        'singular_name' => _x( 'Gallery', 'Gallery' ),
+        'add_new' => _x( 'Add New', 'Gallery' ),
+        'add_new_item' => _x( 'Add New Gallery', 'Gallery' ),
+        'edit_item' => _x( 'Edit Gallery', 'Gallery' ),
+        'new_item' => _x( 'New Gallery', 'Gallery' ),
+        'view_item' => _x( 'View Gallery', 'Gallery' ),
+        'search_items' => _x( 'Search Gallery', 'Gallery' ),
+        'not_found' => _x( 'No Gallery found', 'Gallery' ),
+        'not_found_in_trash' => _x( 'No Gallery found in Trash', 'Gallery' ),
+        'parent_item_colon' => _x( 'Parent Gallery:', 'Gallery' ),
+        'menu_name' => _x( 'Gallery', 'Gallery' ),
+    );
+    $args = array( 
+        'labels' => $labels,
+        'hierarchical' => true,
+        'supports' => array( 'title','thumbnail'),
+        'taxonomies' => array( 'Gallery Category' ),
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_nav_menus' => true,
+        'publicly_queryable' => true,
+        'exclude_from_search' => false,
+        'has_archive' => true,
+        'query_var' => true,
+        'can_export' => true,
+        'parent' => $parent_cat_ID,
+        'taxonomy' => 'gallery_cat',
+        'rewrite' => array( 'slug' => 'Gallery' ),
+        'capability_type' => 'post'
+    );
+
+    register_post_type( 'gallery_post', $args );
+     flush_rewrite_rules();
+}
+
+
+// Start Bespoke Post
+add_action( 'init', 'register_cpt_bespoke' );
+function register_cpt_bespoke() {
+
+    $labels = array( 
+        'name' => _x( 'Bespoke', 'Bespoke' ),
+        'singular_name' => _x( 'Bespoke', 'Bespoke' ),
+        'add_new' => _x( 'Add New', 'Bespoke' ),
+        'add_new_item' => _x( 'Add New Bespoke', 'Bespoke' ),
+        'edit_item' => _x( 'Edit Bespoke', 'Bespoke' ),
+        'new_item' => _x( 'New Bespoke', 'Bespoke' ),
+        'view_item' => _x( 'View Bespoke', 'Bespoke' ),
+        'search_items' => _x( 'Search Bespoke', 'Bespoke' ),
+        'not_found' => _x( 'No Bespoke found', 'Bespoke' ),
+        'not_found_in_trash' => _x( 'No Bespoke found in Trash', 'Bespoke' ),
+        'parent_item_colon' => _x( 'Parent Bespoke:', 'Bespoke' ),
+        'menu_name' => _x( 'Bespoke', 'Bespoke' ),
+    );
+    $args = array( 
+        'labels' => $labels,
+        'hierarchical' => true,
+        'supports' => array( 'title','thumbnail'),
+        'taxonomies' => array( 'Bespoke Category' ),
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_nav_menus' => true,
+        'publicly_queryable' => true,
+        'exclude_from_search' => false,
+        'has_archive' => true,
+        'query_var' => true,
+        'can_export' => true,
+        'parent' => $parent_cat_ID,
+        'taxonomy' => 'bespoke_cat',
+        'rewrite' => array( 'slug' => 'Bespoke' ),
+        'capability_type' => 'post'
+    );
+
+    register_post_type( 'bespoke_post', $args );
+     flush_rewrite_rules();
+}
+
+add_action( 'init', 'create_organization_taxonomy1', 0 );
+function create_organization_taxonomy1() 
+{
+  // Add new taxonomy, make it hierarchical (like categories)
+  $labels = array(
+    'name' => _x( 'Category', 'taxonomy general name' ),
+    'singular_name' => _x( 'Category', 'taxonomy singular name' ),
+    'search_items' =>  __( 'Search Category' ),
+    'all_items' => __( 'All Category' ),
+    'parent_item' => __( 'Parent Category' ),
+    'parent_item_colon' => __( 'Parent Category:' ),
+    'edit_item' => __( 'Edit Category' ), 
+    'update_item' => __( 'Update Category' ),
+    'add_new_item' => __( 'Add New Category' ),
+    'new_item_name' => __( 'New Genre Category' ),
+    'menu_name' => __( 'Add Category' ),
+  );    
+  register_taxonomy('cat_post',array('gallery_post'), array(
+    'hierarchical' => true,
+    'labels' => $labels,
+    'show_ui' => true,
+    'query_var' => true,
+    'has_archive' => true,
+    'rewrite' => array( 'slug' => 'Category' ),
+  ));
+}
+
+//End Gallery Post
+add_action( 'init', 'register_cpt_testimonials' );
+function register_cpt_testimonials() {
+    $labels = array( 
+        'name' => _x( 'Testimonials', 'Testimonials' ),
+        'singular_name' => _x( 'Testimonials', 'Testimonials' ),
+        'add_new' => _x( 'Add New', 'Testimonials' ),
+        'add_new_item' => _x( 'Add New Testimonials', 'Testimonials' ),
+        'edit_item' => _x( 'Edit Testimonials', 'Testimonials' ),
+        'new_item' => _x( 'New Testimonials', 'Testimonials' ),
+        'view_item' => _x( 'View Testimonials', 'Testimonials' ),
+        'search_items' => _x( 'Search Testimonials', 'Testimonials' ),
+        'not_found' => _x( 'No Testimonials found', 'Testimonials' ),
+        'not_found_in_trash' => _x( 'No Testimonials found in Trash', 'Testimonials' ),
+        'parent_item_colon' => _x( 'Parent Testimonials:', 'Testimonials' ),
+        'menu_name' => _x( 'Testimonials', 'Testimonials' ),
+    );
+    $args = array( 
+        'labels' => $labels,
+        'hierarchical' => true,
+        'supports' => array( 'title','thumbnail','editor'),
+        'taxonomies' => array( 'post_tag', 'Testimonials Category' ),
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_nav_menus' => true,
+        'publicly_queryable' => true,
+        'exclude_from_search' => false,
+        'has_archive' => true,
+        'query_var' => true,
+        'can_export' => true,
+        'rewrite' => true,
+        'capability_type' => 'post'
+
+    );
+    register_post_type( 'Testimonials_post', $args );
+     flush_rewrite_rules();
+}
+
+/* Function which displays your post date in time ago format */
+function meks_time_ago() {
+    return human_time_diff( get_the_time( 'U' ), current_time( 'timestamp' ) ).' '.__( 'ago' );
+}
+
+
+
+/*Custom Post type end*/
