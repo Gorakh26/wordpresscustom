@@ -183,6 +183,8 @@ while($posts->have_posts()) : $posts->the_post();?>
 <?php echo get_the_title();?>
 <?php echo get_the_content();?>
 <?php echo the_excerpt(); ?>
+<?php echo get_the_author();?>
+<?php echo get_the_date(); ?>
 
 <!-- SITE URL CODE -->
 <?=site_url();?>
