@@ -187,7 +187,7 @@ while($posts->have_posts()) : $posts->the_post();?>
 <?php echo get_the_date(); ?>
 
 <!-- SITE URL CODE -->
-<?=site_url();?>
+<?php site_url();?>
 
 
 <!-- PAGE DYnamic CODE -->
